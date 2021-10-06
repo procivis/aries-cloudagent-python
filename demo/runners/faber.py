@@ -440,7 +440,7 @@ async def main(args):
             "5/6/" if faber_agent.revocation else "",
             "W/" if faber_agent.multitenant else "",
         )
-        async for option in prompt_loop(options):
+        for option in ["1", "2", "4"]:
             if option is not None:
                 option = option.strip()
 
