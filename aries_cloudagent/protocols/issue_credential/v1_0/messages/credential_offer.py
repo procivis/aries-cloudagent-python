@@ -35,6 +35,7 @@ class CredentialOffer(AgentMessage):
         comment: str = None,
         credential_preview: CredentialPreview = None,
         offers_attach: Sequence[AttachDecorator] = None,
+        attach: Sequence[AttachDecorator] = None,
         **kwargs,
     ):
         """
@@ -44,12 +45,14 @@ class CredentialOffer(AgentMessage):
             comment: optional human-readable comment
             credential_preview: credential preview
             offers_attach: list of offer attachments
+            attach: list of attachments
 
         """
         super().__init__(_id=_id, **kwargs)
         self.comment = comment
         self.credential_preview = credential_preview
         self.offers_attach = list(offers_attach) if offers_attach else []
+        self.attach = list(attach) if attach else []
 
     def indy_offer(self, index: int = 0) -> dict:
         """
@@ -85,4 +88,7 @@ class CredentialOfferSchema(AgentMessageSchema):
     credential_preview = fields.Nested(CredentialPreviewSchema, required=False)
     offers_attach = fields.Nested(
         AttachDecoratorSchema, required=True, many=True, data_key="offers~attach"
+    )
+    attach = fields.Nested(
+        AttachDecoratorSchema, required=False, many=True, data_key="~attach"
     )

@@ -1,5 +1,6 @@
 """Credential exchange admin routes."""
 
+from typing import Sequence
 from aiohttp import web
 from aiohttp_apispec import (
     docs,
@@ -9,6 +10,7 @@ from aiohttp_apispec import (
     response_schema,
 )
 from json.decoder import JSONDecodeError
+from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
 from marshmallow import fields, validate
 
 from ....admin.request_context import AdminRequestContext
@@ -411,6 +413,7 @@ async def credential_exchange_create(request: web.BaseRequest):
         raise web.HTTPBadRequest(reason="credential_proposal must be provided")
     auto_remove = body.get("auto_remove")
     trace_msg = body.get("trace")
+    attach = body.get("attach")
 
     try:
         preview = CredentialPreview.deserialize(preview_spec)
@@ -441,6 +444,7 @@ async def credential_exchange_create(request: web.BaseRequest):
             credential_proposal=credential_proposal,
             auto_remove=auto_remove,
             comment=comment,
+            attach=map(lambda a: AttachDecorator.deserialize(a), attach) if attach else []
         )
     except (StorageError, BaseModelError) as err:
         raise web.HTTPBadRequest(reason=err.roll_up) from err
@@ -644,6 +648,7 @@ async def _create_free_offer(
     preview_spec: dict = None,
     comment: str = None,
     trace_msg: bool = None,
+    attach: Sequence[AttachDecorator] = None,
 ):
     """Create a credential offer and related exchange record."""
 
@@ -676,6 +681,7 @@ async def _create_free_offer(
         cred_ex_record,
         counter_proposal=None,
         comment=comment,
+        attach=attach,
     )
 
     return (cred_ex_record, credential_offer_message)
@@ -795,6 +801,7 @@ async def credential_exchange_send_free_offer(request: web.BaseRequest):
     if not preview_spec:
         raise web.HTTPBadRequest(reason=("Missing credential_preview"))
     trace_msg = body.get("trace")
+    attach = body.get("attach")
 
     cred_ex_record = None
     connection_record = None
@@ -813,6 +820,7 @@ async def credential_exchange_send_free_offer(request: web.BaseRequest):
             preview_spec=preview_spec,
             comment=comment,
             trace_msg=trace_msg,
+            attach=map(lambda a: AttachDecorator.deserialize(a), attach) if attach else []
         )
         result = cred_ex_record.serialize()
 

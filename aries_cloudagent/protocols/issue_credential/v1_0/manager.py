@@ -4,7 +4,9 @@ import asyncio
 import json
 import logging
 
-from typing import Mapping, Tuple
+from typing import Mapping, Sequence, Tuple
+
+from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
 
 from ....cache.base import BaseCache
 from ....core.error import BaseError
@@ -92,6 +94,7 @@ class CredentialManager:
         credential_proposal: CredentialProposal,
         auto_remove: bool = None,
         comment: str = None,
+        attach: Sequence[AttachDecorator] = None,
     ) -> Tuple[V10CredentialExchange, CredentialOffer]:
         """
         Set up a new credential exchange for an automated send.
@@ -120,6 +123,7 @@ class CredentialManager:
             cred_ex_record=credential_exchange,
             counter_proposal=None,
             comment=comment,
+            attach=attach,
         )
         return (credential_exchange, credential_offer)
 
@@ -229,6 +233,7 @@ class CredentialManager:
         cred_ex_record: V10CredentialExchange,
         counter_proposal: CredentialProposal = None,
         comment: str = None,
+        attach: Sequence[AttachDecorator] = None,
     ) -> Tuple[V10CredentialExchange, CredentialOffer]:
         """
         Create a credential offer, update credential exchange record.
@@ -301,6 +306,7 @@ class CredentialManager:
             comment=comment,
             credential_preview=credential_preview,
             offers_attach=[CredentialOffer.wrap_indy_offer(credential_offer)],
+            attach=attach,
         )
 
         credential_offer_message._thread = {"thid": cred_ex_record.thread_id}
